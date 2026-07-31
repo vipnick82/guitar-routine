@@ -1,0 +1,804 @@
+<!doctype html>
+<html lang="bg">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"/>
+<meta name="theme-color" content="#0a0a0a"/>
+<meta name="description" content="Ежедневна програма по китара - 30 минути на ден"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="Китара - Програма"/>
+<link rel="apple-touch-icon" href="icon-180.png"/>
+<link rel="icon" type="image/png" href="icon-180.png"/>
+<link rel="manifest" href="manifest.json"/>
+<title>Ежедневна програма по китара — 30 минути</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#0a0a0a;--panel:#141210;--line:#2b2724;--gold:#f0b429;--txt:#f5f0e8;--muted:#8a8078;--dim:#5e564f}
+html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
+body{background:var(--bg);color:var(--txt);line-height:1.62;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+  background-image:radial-gradient(ellipse at 50% -8%,#1e1810 0%,#0a0a0a 55%);background-attachment:fixed;
+  padding:calc(0px + env(safe-area-inset-top)) 0 calc(60px + env(safe-area-inset-bottom));
+  overscroll-behavior-y:none;-webkit-text-size-adjust:100%}
+.wrap{max-width:820px;margin:0 auto;
+  padding-left:calc(18px + env(safe-area-inset-left));
+  padding-right:calc(18px + env(safe-area-inset-right))}
+button,select,.sq,.tbtn,.nav a,.back a{touch-action:manipulation}
+
+header{text-align:center;padding:44px 0 26px}
+header .kicker{font-size:10px;letter-spacing:3.4px;color:var(--gold);font-weight:700}
+header h1{font-size:31px;font-weight:800;margin:10px 0 12px;letter-spacing:-.3px;line-height:1.2}
+header p{color:var(--muted);font-size:15px;max-width:520px;margin:0 auto}
+
+/* ---- цвят на всяка секция: --c ярък, --cb тъмен фон/кант ---- */
+.s-spider{--c:#3b8cf6; --cb:#0e2140}   /* 1 · синьо    */
+.s-chords{--c:#27c65e; --cb:#0d2f1a}   /* 2 · зелено   */
+.s-penta {--c:#f97316; --cb:#3a1d07}   /* 3 · оранжево */
+.s-song  {--c:#ef4444; --cb:#3a1313}   /* 4 · червено  */
+/* секциите, които не са упражнения, остават неутрални */
+.s-plan, .s-out {--c:var(--gold); --cb:#2b2724}
+
+/* ВАЖНО: --c НЕ се декларира тук, за да не победи наследеното от <section>.
+   Вместо това навсякъде се ползва var(--c, резервен-цвят). */
+h2{font-size:22px;font-weight:800;margin:44px 0 6px;letter-spacing:-.2px;
+   padding-top:22px;border-top:2px solid var(--cb,var(--line));
+   scroll-margin-top:14px;color:var(--c,var(--gold))}
+h2 .num{display:inline-flex;align-items:center;justify-content:center;
+   width:30px;height:30px;border-radius:50%;background:var(--c,var(--gold));color:#12100c;
+   font-size:16px;font-weight:800;margin-right:12px;vertical-align:-6px}
+#menu{scroll-margin-top:14px}
+
+/* ---- бърза навигация ---- */
+.nav{display:flex;flex-wrap:wrap;gap:9px;justify-content:center;margin:26px 0 4px}
+.nav a{display:inline-flex;align-items:center;gap:9px;text-decoration:none;
+  background:var(--c,var(--gold));                       /* резерва */
+  background:linear-gradient(180deg,
+    color-mix(in srgb, var(--c,var(--gold)) 84%, #fff 16%),
+    color-mix(in srgb, var(--c,var(--gold)) 86%, #000 14%));
+  color:#fff;border:0;border-radius:999px;padding:13px 24px;
+  font-size:14px;font-weight:800;letter-spacing:.3px;
+  box-shadow:0 6px 20px -6px var(--c,var(--gold)), inset 0 1px 0 rgba(255,255,255,.38);
+  transition:transform .15s, box-shadow .15s, filter .15s}
+.nav a:hover{transform:translateY(-2px);filter:brightness(1.08);
+  box-shadow:0 11px 28px -7px var(--c,var(--gold)), inset 0 1px 0 rgba(255,255,255,.45)}
+.nav a:active{transform:translateY(0)}
+.nav a b{display:inline-flex;align-items:center;justify-content:center;
+  width:23px;height:23px;border-radius:50%;background:rgba(255,255,255,.92);
+  color:var(--c,var(--gold));font-size:12.5px;font-weight:800;flex:0 0 23px;
+  box-shadow:0 1px 2px rgba(0,0,0,.25)}
+
+/* ---- лента с таймер и метроном под всяко упражнение ---- */
+@keyframes arrive{0%{box-shadow:0 0 0 0 var(--c)}100%{box-shadow:0 0 0 16px transparent}}
+section.arrive .tools{animation:arrive .9s ease-out}
+@keyframes puls{0%{transform:scale(1.9);opacity:1}100%{transform:scale(1);opacity:.25}}
+
+/* лентата е винаги бяла, независимо от цвета на секцията —
+   --c се презаписва тук, така че всички деца в нея стават бели */
+.tools{--c:#ffffff;
+  display:flex;flex-wrap:wrap;align-items:center;gap:10px;
+  background:#131211;border:1.5px solid rgba(255,255,255,.42);
+  border-radius:16px;padding:12px 14px;margin:18px 0 6px}
+.tools .tbtn:hover,.tools .tbtn.on{color:#12100c}
+.tools .bpm{background:#39352f}
+.tools .grp{display:flex;align-items:center;gap:9px}
+.tools .grp+.grp{margin-left:auto}
+
+.clock{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  font-size:25px;font-weight:700;color:var(--c,var(--gold));min-width:78px;
+  letter-spacing:1px;font-variant-numeric:tabular-nums}
+.clock.done{color:#ff6b5e}
+
+.tbtn{background:transparent;border:1.5px solid var(--c,var(--gold));color:var(--c,var(--gold));
+  border-radius:999px;padding:8px 16px;font-size:13px;font-weight:700;cursor:pointer;
+  font-family:inherit;transition:background .15s,color .15s}
+.tbtn:hover{background:var(--c,var(--gold));color:#12100c}
+.tbtn.on{background:var(--c,var(--gold));color:#12100c}
+.tbtn.ico{padding:8px 12px;font-size:15px;line-height:1}
+
+.bpm{-webkit-appearance:none;appearance:none;width:104px;height:5px;border-radius:3px;
+  background:#3a3430;outline:none}
+.bpm::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;
+  background:var(--c,var(--gold));cursor:pointer}
+.bpm::-moz-range-thumb{width:18px;height:18px;border:0;border-radius:50%;
+  background:var(--c,var(--gold));cursor:pointer}
+.bpmv{font-size:13px;color:var(--c,var(--gold));font-weight:700;min-width:52px;
+  font-variant-numeric:tabular-nums}
+.dot{width:11px;height:11px;border-radius:50%;background:var(--c,var(--gold));opacity:.25;flex:0 0 11px}
+.dot.beat{animation:puls .16s ease-out}
+.tools .hint{font-size:11.5px;color:var(--muted);width:100%;margin-top:2px}
+
+/* ---- обл червен бутон за връщане ---- */
+.back{text-align:center;margin:34px 0 -10px}
+.back a{display:inline-block;text-decoration:none;
+  background:linear-gradient(180deg,#e04236,#c02a20);color:#fff;
+  border:0;border-radius:999px;padding:13px 40px;font-size:14px;font-weight:800;
+  letter-spacing:2.2px;
+  box-shadow:0 6px 20px -6px rgba(224,66,54,.75);
+  transition:transform .15s, box-shadow .15s, filter .15s}
+.back a:hover{transform:translateY(-2px);filter:brightness(1.08);
+  box-shadow:0 10px 26px -6px rgba(224,66,54,.85)}
+.back a:active{transform:translateY(0)}
+h3{font-size:15px;font-weight:700;margin:26px 0 10px;color:var(--c,var(--gold));letter-spacing:.2px}
+p{margin:12px 0}
+strong{color:#fff;font-weight:650}
+ul,ol{margin:12px 0 12px 20px}
+li{margin:7px 0}
+a{color:#5aa9e6}
+
+.card{background:linear-gradient(180deg,#151311,#100e0d);border:1px solid var(--line);
+  border-radius:16px;padding:20px 22px;margin:20px 0}
+.card.tight{padding:16px 18px}
+
+.lead{font-size:16px;color:#ded5c8}
+.note{border-left:3px solid var(--c,var(--gold));background:var(--cb,#17130a);padding:13px 16px;border-radius:0 10px 10px 0;margin:18px 0;font-size:14.5px}
+.warn{border-left:3px solid #d9534f;background:#1a1010;padding:13px 16px;border-radius:0 10px 10px 0;margin:18px 0;font-size:14.5px}
+
+table{width:100%;border-collapse:collapse;margin:18px 0;font-size:14px}
+th{text-align:left;font-size:10px;letter-spacing:1.6px;color:var(--dim);
+   font-weight:700;padding:0 10px 9px;border-bottom:1px solid var(--line)}
+td{padding:11px 10px;border-bottom:1px solid #201d1a;vertical-align:top}
+tr:last-child td{border-bottom:0}
+td.b{color:var(--c,var(--gold));font-weight:700;white-space:nowrap}
+
+.figs{display:flex;flex-wrap:wrap;gap:14px;justify-content:center;margin:20px 0 6px}
+.fig{text-align:center}
+.fig .frame{border:1px solid var(--cb,var(--line));border-radius:14px;padding:0 8px 8px;
+  background:linear-gradient(180deg,#2b2117 0%,#181410 45%,#121010 100%)}
+.fig svg{display:block;width:118px;height:auto}
+.fig .cap{font-size:11.5px;color:var(--muted);margin-top:7px}
+
+.neck{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:16px 0 6px;
+  border:1px solid var(--cb,var(--line));border-radius:14px;padding:14px 10px;
+  background:linear-gradient(180deg,#191512,#111010)}
+.neck svg{display:block;margin:0 auto;min-width:380px}
+.caption{font-size:12px;color:var(--muted);text-align:center;margin:8px 0 4px}
+
+pre{background:#0d0c0b;border:1px solid var(--line);border-radius:12px;
+  padding:15px 16px;overflow-x:auto;margin:16px 0;
+  font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  font-size:12.5px;line-height:1.75;color:#cfc6b8;-webkit-overflow-scrolling:touch}
+
+/* ---- стръминг патерн със стрелки ---- */
+.strum{border:1px solid var(--cb,var(--line));border-radius:16px;
+  background:linear-gradient(180deg,#191512,#111010);padding:18px 14px 14px;margin:18px 0 6px;
+  overflow-x:auto;-webkit-overflow-scrolling:touch}
+.strum .row{display:flex;gap:8px;justify-content:center;min-width:392px}
+.sq{width:44px;flex:0 0 44px;text-align:center}
+.sq .pad{height:46px;border-radius:12px;display:flex;align-items:center;justify-content:center;
+  position:relative;overflow:hidden}
+.sq .pad svg{width:22px;height:26px;display:block;position:relative;z-index:1}
+/* активен удар — стоманено-синьо гланцирано квадратче, независимо от цвета на секцията */
+.sq.on .pad{background:#a8c3d8;                          /* резерва за стари браузъри */
+  background:linear-gradient(180deg,#d2e2ee 0%,#aec8dc 46%,#7f9fba 100%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.9),
+             inset 0 -2px 4px rgba(0,0,0,.18),
+             0 3px 10px -3px rgba(0,0,0,.65)}
+.sq.on .pad::after{content:'';position:absolute;inset:0 0 54% 0;
+  background:linear-gradient(180deg,rgba(255,255,255,.45),rgba(255,255,255,0))}
+.sq.on .pad svg path{stroke:#fff;filter:drop-shadow(0 1px 1px rgba(30,60,90,.45))}
+/* пауза — същата форма, но угасена */
+.sq.off .pad{background:linear-gradient(180deg,#2a2622,#1c1917);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.07)}
+.sq.off .pad svg{opacity:.26}
+.sq .lbl{font-size:13px;font-weight:800;margin-top:7px;
+  color:#b6cddf;letter-spacing:.5px;height:17px}
+.sq.off .lbl{color:#4a443e}
+.sq .cnt{font-size:11px;color:var(--dim);margin-top:2px}
+.strum .cap{text-align:center;font-size:12px;color:var(--muted);margin-top:12px}
+
+.legend{display:flex;flex-wrap:wrap;gap:14px;justify-content:center;font-size:11.5px;color:var(--muted);margin-top:12px}
+.legend span{display:flex;align-items:center;gap:6px}
+.sw{width:15px;height:15px;border-radius:50%;display:inline-block}
+
+.time{display:flex;align-items:center;gap:14px;padding:13px 0;border-bottom:1px solid #201d1a}
+.time:last-child{border-bottom:0}
+.time .t{font-size:12px;color:var(--c,var(--gold));font-weight:800;width:62px;flex:0 0 62px;letter-spacing:.4px}
+.time .w{font-weight:650;font-size:15px}
+.time .d{font-size:12.5px;color:var(--muted)}
+
+footer{text-align:center;color:var(--dim);font-size:12px;margin-top:46px;padding-top:22px;border-top:1px solid var(--line)}
+
+@media print{
+  .nav,.back,.tools{display:none}
+  body{background:#fff;color:#111;background-image:none;padding:0}
+  .card,.neck,pre,.fig .frame{background:#fff;border-color:#bbb}
+  h2,h3,.time .t,td.b,header .kicker{color:#111;border-color:#bbb}
+  h2 .num{background:#333;color:#fff}
+  .note{background:#faf6ea;border-color:#8a6a1f}
+  strong{color:#000} .note{background:#faf6ea} .warn{background:#fdf0f0}
+  th,td{border-color:#ddd}
+}
+@media (max-width:560px){
+  header h1{font-size:25px} h2{font-size:19px}
+  .card{padding:16px 15px} table{font-size:13px} td,th{padding-left:6px;padding-right:6px}
+  .time{flex-wrap:wrap} .time .d{width:100%}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="kicker">ЕЖЕДНЕВНА ПРОГРАМА</div>
+  <h1>30 минути китара на ден</h1>
+
+  <nav class="nav" id="menu">
+    <a class="s-spider" href="#spider"><b>1</b> Spider</a>
+    <a class="s-chords" href="#smiana"><b>2</b> Смяна на акорди</a>
+    <a class="s-penta" href="#penta"><b>3</b> Пентатоника</a>
+    <a class="s-song" href="#pesen"><b>4</b> Песента</a>
+  </nav>
+</header>
+
+<section class="s-spider" data-min="6" data-bpm="50">
+<h2 id="spider"><span class="num">1</span>Spider exercise <span style="font-size:14px;color:var(--muted);font-weight:400">· 6 минути</span></h2>
+
+<h3>Седмици 1—2 · хроматично 1-2-3-4</h3>
+<p>Пети праг. По четири тона на струна, един тон на клик. Нагоре от ниската E, после обратно надолу.</p>
+
+<div class="neck" id="n1"></div>
+<div class="caption">Цветът показва кой пръст свири — а числото в кръгчето е същият пръст</div>
+
+<pre>
+e|--------------------------------5--6--7--8--|
+B|--------------------------5--6--7--8--------|
+G|--------------------5--6--7--8--------------|
+D|--------------5--6--7--8--------------------|
+A|--------5--6--7--8--------------------------|
+E|--5--6--7--8--------------------------------|
+</pre>
+
+<div class="note">
+<strong>Четирите правила, без които упражнението не върши работа:</strong>
+<ol style="margin-bottom:0">
+<li><strong>Пръстът остава долу.</strong> Сложиш ли показалеца на 5-ти праг, не го вдигаш, докато не смениш струната. Това е цялата идея.</li>
+<li><strong>Кутрето не бяга настрани.</strong> Иска му се. Дръж го над струната.</li>
+<li><strong>Палецът е зад грифа</strong>, в средата — не увит отгоре.</li>
+<li><strong>Редуващо перде</strong> — надолу, нагоре, надолу, нагоре. Без изключения.</li>
+</ol>
+</div>
+
+<p><strong>Темпо:</strong> започваш на 50 BPM. Качваш с 5 BPM само след две чисти обиколки подред.
+Цел за седмица 2: <strong>80 BPM</strong>.</p>
+
+<h3>Седмици 3—4 · истинският spider</h3>
+<p>Сега пръстите пълзят по две струни едновременно. Редът е <strong>E5 → A6 → E7 → A8</strong> —
+показалецът и безименният са на едната струна, средният и кутрето на другата.</p>
+
+<div class="neck" id="n2"></div>
+<div class="caption">Линията показва пътя на „паяка“. Изкарваш го на двойката E—A, после A—D, D—G, G—B, B—e и обратно</div>
+
+<pre>
+E|--5-----7-----|   показалец (5) и безименен (7)
+A|-----6-----8--|   среден (6) и кутре (8)
+</pre>
+
+<p>Това е несравнимо по-трудно от хроматичното. Ако на 50 BPM звучи мърляво — слез на 40.
+Цел за седмица 4: <strong>65 BPM</strong>.</p>
+
+<!-- ============ 2. СМЯНА ============ -->
+</section>
+
+<div class="back"><a href="#menu">НАЗАД</a></div>
+<section class="s-chords" data-min="8" data-bpm="50">
+<h2 id="smiana"><span class="num">2</span>Смяна на акорди с метроном <span style="font-size:14px;color:var(--muted);font-weight:400">· 8 минути</span></h2>
+<p>Тук е истинската работа. Отвори апа → <strong>Преходи между акорди</strong>.</p>
+
+<p>Метрономът на <strong>50 BPM</strong>. Един такт (4 клика) държиш първия акорд и удряш надолу на всеки клик.
+Следващият такт — вторият акорд. И така, безспир.</p>
+
+<div class="note" style="margin-top:14px"><strong>Не спираш метронома, когато сбъркаш.</strong>
+Изпускаш такта и хващаш следващия. Спирането учи ръката ти, че е позволено да спира.</div>
+
+<h3>Петте акорда</h3>
+<div class="figs" id="chords"></div>
+
+<h3>Двойките по седмици</h3>
+<table>
+<tr><th>Седмица</th><th>Двойки · по 2 мин всяка</th><th>Защо тези</th></tr>
+<tr><td class="b">1</td><td>Em ↔ Am<br/>Em ↔ D6/9</td><td>Em е най-лесният акорд. Am е същата форма, преместена една струна нагоре.</td></tr>
+<tr><td class="b">2</td><td>Em ↔ D<br/>G ↔ D · Am ↔ D</td><td>D въвежда триъгълника — първата форма, която не е права линия.</td></tr>
+<tr><td class="b">3</td><td>G ↔ C<br/>C ↔ D · Am ↔ C</td><td>C е най-трудният от петте. Заслужава цяла седмица.</td></tr>
+<tr><td class="b">4</td><td>G → D → Am → C<br/>в кръг</td><td>Вече не е упражнение, а песен.</td></tr>
+</table>
+
+<h3>Тестът с една минута</h3>
+<p>Всеки петък: избираш двойка, пускаш таймер на 60 секунди и броиш колко пъти минаваш от единия
+акорд към другия <strong>чисто</strong> — всички струни звънят.</p>
+<table>
+<tr><th>Резултат</th><th>Значение</th></tr>
+<tr><td class="b">под 20</td><td>нормално за първата седмица</td></tr>
+<tr><td class="b">30—40</td><td>смяната ти вече става в бавна песен</td></tr>
+<tr><td class="b">60+</td><td>акордът е автоматичен, минаваш нататък</td></tr>
+</table>
+<p>Записвай числото. То расте по-бързо, отколкото очакваш — и точно то ще те държи в третата седмица,
+когато нищо не изглежда да се получава.</p>
+
+<div class="warn"><strong>Ако акордът звънти глухо:</strong> натискаш точно до металния праг, не върху него
+и не по средата · върхът на пръста е перпендикулярен на грифа, не легнал · ноктите на лявата ръка са къси ·
+не стискай по-силно — ако боли, проблемът е в позицията, не в силата.</div>
+
+<!-- ============ 3. ПЕНТАТОНИКА ============ -->
+</section>
+
+<div class="back"><a href="#menu">НАЗАД</a></div>
+<section class="s-penta" data-min="7" data-bpm="50">
+<h2 id="penta"><span class="num">3</span>Минорна пентатоника <span style="font-size:14px;color:var(--muted);font-weight:400">· 7 минути</span></h2>
+<p>Пет тона, които звучат добре над почти всичко. Това е гамата, с която е изсвирено 90% от рока и блуса.</p>
+
+<h3>Ла минорна пентатоника, позиция 1 · 5-ти праг</h3>
+<div class="neck" id="n3"></div>
+<div class="caption">Кремавите кръгчета са тониката (тон <strong>A</strong>) — на тях фразата звучи „прибрана“</div>
+
+<table>
+<tr><th>Минути</th><th>Какво правиш</th></tr>
+<tr><td class="b">1—3</td><td>нагоре и надолу с метроном, един тон на клик, 50 BPM <span style="color:var(--dim)">(цел седм. 4: 80)</span></td></tr>
+<tr><td class="b">4—5</td><td>само надолу, от високата e към ниската E — слизането е по-трудно</td></tr>
+<tr><td class="b">6—7</td><td>без метроном, спирай на различни тонове и слушай кой къде те тегли</td></tr>
+</table>
+
+<h3>Първата ти фраза</h3>
+<p>Гамата е азбука. Фразата е дума. Ето разликата:</p>
+<div class="neck" id="n4"></div>
+<div class="caption">Свириш ги по ред 1 → 5, по един тон на клик на метронома</div>
+
+<div class="note">
+<strong>Какво всъщност правиш.</strong> Слизаш през кутията, като на всяка струна вземаш
+<strong>два тона</strong> — първо високия (кутре или безименен), после ниския (показалец) — и минаваш
+на следващата по-дебела струна. Три струни, шест движения, кацаш на петия тон.
+<p style="margin-bottom:0"><strong>Защо точно там.</strong> Последният тон (D струна, 7-ми праг) е <strong>A</strong> —
+тониката на гамата. Ако спреш на него, фразата звучи завършена. Ако спреш на кой да е друг тон,
+звучи все едно си се отказал по средата на изречението. Пробвай: изсвири я и спри на четвъртия тон,
+после я изсвири пак и спри на петия. Разликата се чува веднага — и това е цялата идея.</p>
+</div>
+
+<p>Изсвири я, остави последния тон да звъни четири клика, после я почни отначало.
+Това е първото нещо, което свириш, а не упражняваш.</p>
+
+<!-- ============ 4. ПЕСЕНТА ============ -->
+</section>
+
+<div class="back"><a href="#menu">НАЗАД</a></div>
+<section class="s-song" data-min="8" data-bpm="60">
+<h2 id="pesen"><span class="num">4</span>Песента <span style="font-size:14px;color:var(--muted);font-weight:400">· 8 минути</span></h2>
+
+<h3>Седмици 1—2 · A Horse With No Name</h3>
+<p>Избрах я заради нещо, което няма да срещнеш в друга песен толкова рано:
+<strong>двата акорда се свирят с едни и същи два пръста, на един и същи праг</strong>.</p>
+<div class="figs" id="song1"></div>
+
+<div class="note" style="margin-top:6px">
+<strong>Виж какво се случва между двете диаграми.</strong> Средният и безименният пръст стоят на
+<strong>2-ри праг</strong> и в двата акорда. При смяната просто се разтварят по една струна встрани —
+средният слиза от 5-та на 6-та струна, безименният се качва от 4-та на 3-та. Нищо друго не мърда,
+никой пръст не търси нов праг.
+<p style="margin-bottom:0;margin-top:10px">Затова тази песен е първата. Смяната на акорд, която обикновено отнема седмици,
+тук е един жест.</p>
+</div>
+
+<p>Два такта Em, два такта D6/9, безкрайно. В апа: <em>Още песни → A Horse With No Name</em>.
+Започваш на 60 BPM, вдигаш до 80.</p>
+
+<div class="strum" data-p="D-DU-UDU" data-cap="Патернът на A Horse With No Name"></div>
+
+
+<h3>Седмици 3—4 · Knockin' on Heaven's Door</h3>
+<div class="figs" id="song2"></div>
+<div class="strum" data-p="D---D-DU" data-cap="Патернът на Knockin' on Heaven's Door"></div>
+
+<p><strong>G D Am Am | G D C C</strong>, 60 BPM.
+Четири акорда и всичките вече ги тренираш в блок 2. В апа е първата в <em>Play Throughs (Beginner)</em>.</p>
+
+<div class="note">
+<strong>Как се учи песен, вместо да се мъчиш с нея:</strong>
+<ol style="margin-bottom:0">
+<li>Първо само смяната на акорди, без ритъм — по един удар на акорд</li>
+<li>После патернът, но само на един акорд</li>
+<li>Чак накрая двете заедно, на <strong>половин темпо</strong></li>
+<li>Качваш темпото само след две минавания без спиране</li>
+</ol>
+<p style="margin-bottom:0;margin-top:10px">Прескочиш ли стъпка 1 или 2, ще биеш на стена в стъпка 3 и няма да разбереш защо.</p>
+</div>
+
+<!-- ============ ПЛАН ============ -->
+</section>
+
+<div class="back"><a href="#menu">НАЗАД</a></div>
+<section class="s-plan">
+<h2 id="plan">Планът за 4 седмици</h2>
+<table>
+<tr><th></th><th>Spider</th><th>Смяна</th><th>Пентатоника</th><th>Песен</th></tr>
+<tr><td class="b">Седм. 1</td><td>хроматично<br/>50→60</td><td>Em↔Am<br/>Em↔D6/9</td><td>формата<br/>нагоре/надолу, 50</td><td>Horse —<br/>само акордите</td></tr>
+<tr><td class="b">Седм. 2</td><td>хроматично<br/>60→80</td><td>Em↔D, G↔D<br/>Am↔D</td><td>60 BPM</td><td>Horse —<br/>с патерна</td></tr>
+<tr><td class="b">Седм. 3</td><td>spider<br/>40→55</td><td>G↔C, C↔D<br/>Am↔C</td><td>70 BPM<br/>+ фразата</td><td>Knockin' —<br/>акордите</td></tr>
+<tr><td class="b">Седм. 4</td><td>spider<br/>55→65</td><td>G→D→Am→C<br/>в кръг</td><td>80 BPM<br/>+ импровизация</td><td>Knockin' —<br/>цялата, 60</td></tr>
+</table>
+
+<!-- ============ ОЧАКВАНИЯ ============ -->
+</section>
+
+<div class="back"><a href="#menu">НАЗАД</a></div>
+<section class="s-out">
+<h2 id="ochakvane">Какво да очакваш</h2>
+<div class="card tight">
+  <div class="time"><div class="t">Дни 1—4</div><div><div class="d">Върховете на пръстите болят. Нормално е и минава — мазолите се оформят за 2—3 седмици.</div></div></div>
+  <div class="time"><div class="t">Дни 5—10</div><div><div class="d">Най-опасният момент. Нищо не звучи като музика и се питаш дали има смисъл. Има. Точно тук отпадат хората.</div></div></div>
+  <div class="time"><div class="t">Ден 14</div><div><div class="d">Първата смяна на акорд, която се случва без да мислиш за нея. Ще я усетиш.</div></div></div>
+  <div class="time"><div class="t">Ден 30</div><div><div class="d">Цяла песен, изсвирена от начало до край.</div></div></div>
+</div>
+
+<div class="warn"><strong>Кога да спреш.</strong> Болката във върха на пръстите е нормална.
+Болка в <strong>ставите, китката или предмишницата</strong> не е — спираш веднага. Обикновено идва от твърде
+висок палец, увит около грифа, или от прекалено стискане. Ако китката те боли два дни подред,
+нещо в позицията е грешно. По-добре загубен ден, отколкото тендинит.</div>
+</section>
+
+<div class="back"><a href="#menu">НАЗАД</a></div>
+
+<footer>Свири бавно. Свири всеки ден.</footer>
+</div>
+
+<script>
+/* ---------- акорди: същите диаграми като в апа ---------- */
+const CHORDS = {
+  'C':    {f:[-1,3,2,0,1,0], g:[0,3,2,0,1,0]},
+  'D':    {f:[-1,-1,0,2,3,2], g:[0,0,0,1,3,2]},
+  'D6/9': {f:[2,0,0,2,0,0], g:[2,0,0,3,0,0]},
+  'Em':   {f:[0,2,2,0,0,0], g:[0,2,3,0,0,0]},
+  'G':    {f:[3,2,0,0,0,3], g:[3,2,0,0,0,4]},
+  'Am':   {f:[-1,0,2,2,1,0], g:[0,0,2,3,1,0]}
+};
+
+function chordSVG(name){
+  const c = CHORDS[name]; if(!c) return '';
+  const pos = c.f.filter(x=>x>0);
+  const maxF = pos.length?Math.max(...pos):0, minF = pos.length?Math.min(...pos):0;
+  const base = maxF>4 ? minF : 1;
+  const NF=5, L=16, SP=18, TOP=52, FH=21;
+  const x=i=>L+i*SP, y=f=>TOP+(f-0.5)*FH;
+  const fs = name.length>3 ? 18 : 24;
+  let s = '<svg viewBox="0 0 122 176" xmlns="http://www.w3.org/2000/svg">';
+  s += `<text x="61" y="30" fill="#f0b429" font-size="${fs}" font-weight="800" text-anchor="middle" font-family="Georgia,serif">${name}</text>`;
+  for(let r=0;r<=NF;r++){
+    const yy=TOP+r*FH, nut=(r===0&&base===1);
+    s += `<line x1="${L}" y1="${yy}" x2="${x(5)}" y2="${yy}" stroke="${nut?'#cdb890':'#4a4038'}" stroke-width="${nut?3:1}" stroke-linecap="round"/>`;
+  }
+  for(let i=0;i<6;i++) s += `<line x1="${x(i)}" y1="${TOP}" x2="${x(i)}" y2="${TOP+NF*FH}" stroke="#5f5347" stroke-width="1"/>`;
+  if(base>1) s += `<text x="${L-6}" y="${y(1)+4}" fill="#8a8078" font-size="10" text-anchor="end">${base}</text>`;
+  for(let i=0;i<6;i++){
+    const f=c.f[i];
+    if(f===-1) s += `<text x="${x(i)}" y="${TOP-6}" fill="#8a8078" font-size="11" text-anchor="middle">×</text>`;
+    else if(f===0) s += `<circle cx="${x(i)}" cy="${TOP-10}" r="4" fill="none" stroke="#d8cbb4" stroke-width="1.4"/>`;
+    else{
+      const rf=f-base+1; if(rf<1||rf>NF) continue;
+      s += `<circle cx="${x(i)}" cy="${y(rf)}" r="7.5" fill="#f0b429"/>`;
+      if(c.g[i]>0) s += `<text x="${x(i)}" y="${y(rf)+3.6}" fill="#1a1408" font-size="9.5" font-weight="700" text-anchor="middle">${c.g[i]}</text>`;
+    }
+  }
+  return s+'</svg>';
+}
+
+function figs(el, names){
+  document.getElementById(el).innerHTML = names.map(n=>
+    `<div class="fig"><div class="frame">${chordSVG(n)}</div><div class="cap">${n}</div></div>`).join('');
+}
+figs('chords', ['Em','Am','D','G','C']);
+figs('song1',  ['Em','D6/9']);
+figs('song2',  ['G','D','Am','C']);
+
+/* ---------- гриф (хоризонтален) за упражненията ----------
+   dots: {s: 0=ниска E … 5=висока e, f: праг, fin: пръст, ord: ред, root: bool} */
+const FCOL = {1:'#f6c757', 2:'#f0b429', 3:'#d59a1c', 4:'#b47c12'};
+
+function neckSVG(o){
+  const from=o.from, to=o.to, dots=o.dots||[], path=o.path;
+  const nF=to-from+1;
+  const L=44, FW=54, SP=23, TOP=26, RPAD=16;
+  const W=L+nF*FW+RPAD, H=TOP+5*SP+40;
+  const NAMES=['e','B','G','D','A','E'];        // отгоре надолу
+  const xf=f=>L+(f-from+0.5)*FW;                // център на прага
+  const ys=s=>TOP+(5-s)*SP;                     // s: 0 = ниска E (най-долу)
+
+  let g='<svg viewBox="0 0 '+W+' '+H+'" xmlns="http://www.w3.org/2000/svg">';
+  g += `<rect x="${L}" y="${TOP-9}" width="${nF*FW}" height="${5*SP+18}" rx="4" fill="#231a12"/>`;
+  // инлеи
+  [3,5,7,9,15,17,19,21].forEach(f=>{ if(f>=from&&f<=to)
+    g += `<circle cx="${xf(f)}" cy="${TOP+2.5*SP}" r="5" fill="#3a2e22"/>`; });
+  if(12>=from&&12<=to){
+    g += `<circle cx="${xf(12)}" cy="${TOP+1.5*SP}" r="5" fill="#3a2e22"/>`;
+    g += `<circle cx="${xf(12)}" cy="${TOP+3.5*SP}" r="5" fill="#3a2e22"/>`;
+  }
+  // прагове
+  for(let k=0;k<=nF;k++){
+    const x=L+k*FW, nut=(from+k===1);
+    g += `<line x1="${x}" y1="${TOP-9}" x2="${x}" y2="${TOP+5*SP+9}" stroke="${nut?'#cdb890':'#6b5b48'}" stroke-width="${nut?4:2}"/>`;
+  }
+  // струни + имена
+  for(let i=0;i<6;i++){
+    const y=TOP+i*SP;
+    g += `<line x1="${L}" y1="${y}" x2="${L+nF*FW}" y2="${y}" stroke="#8c7c66" stroke-width="${1+i*0.35}"/>`;
+    g += `<text x="${L-13}" y="${y+4}" fill="#8a8078" font-size="12" text-anchor="middle" font-family="Georgia,serif">${NAMES[i]}</text>`;
+  }
+  // номера на праговете
+  for(let k=0;k<nF;k++)
+    g += `<text x="${xf(from+k)}" y="${TOP+5*SP+30}" fill="#5e564f" font-size="11.5" text-anchor="middle">${from+k}</text>`;
+
+  // път на паяка
+  if(path && path.length>1){
+    const d = path.map((p,i)=>(i?'L':'M')+xf(p.f)+' '+ys(p.s)).join(' ');
+    g += `<path d="${d}" fill="none" stroke="#f0b429" stroke-width="1.6" stroke-dasharray="4 4" opacity=".55"/>`;
+  }
+
+  dots.forEach(p=>{
+    const cx=xf(p.f), cy=ys(p.s), r=10;
+    const fill = p.root ? '#f3ead6' : (FCOL[p.fin]||'#f0b429');
+    g += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${fill}" stroke="#1a1408" stroke-width="1"/>`;
+    g += `<text x="${cx}" y="${cy+4}" fill="#1a1408" font-size="11" font-weight="700" text-anchor="middle">${p.lbl!==undefined?p.lbl:p.fin}</text>`;
+  });
+  return g+'</svg>';
+}
+
+function neck(el, o, legend){
+  document.getElementById(el).innerHTML = neckSVG(o) + (legend||'');
+}
+
+const legFingers =
+  '<div class="legend">' +
+  [1,2,3,4].map(i=>`<span><i class="sw" style="background:${FCOL[i]}"></i>пръст ${i}</span>`).join('') +
+  '</div>';
+
+/* 1 · хроматично 1-2-3-4 на 5-ти праг, всички струни */
+(function(){
+  const d=[];
+  for(let s=0;s<6;s++) for(let k=0;k<4;k++) d.push({s:s, f:5+k, fin:k+1});
+  neck('n1', {from:4, to:9, dots:d}, legFingers);
+})();
+
+/* 2 · истинският spider на двойката E—A */
+(function(){
+  const p=[{s:0,f:5},{s:1,f:6},{s:0,f:7},{s:1,f:8}];
+  const d=[{s:0,f:5,fin:1},{s:1,f:6,fin:2},{s:0,f:7,fin:3},{s:1,f:8,fin:4}];
+  neck('n2', {from:4, to:9, dots:d, path:p}, legFingers);
+})();
+
+/* 3 · Am пентатоника, позиция 1 */
+(function(){
+  const box=[
+    {s:0,f:5,fin:1,root:true},{s:0,f:8,fin:4},
+    {s:1,f:5,fin:1},{s:1,f:7,fin:3},
+    {s:2,f:5,fin:1},{s:2,f:7,fin:3,root:true},
+    {s:3,f:5,fin:1},{s:3,f:7,fin:3},
+    {s:4,f:5,fin:1},{s:4,f:8,fin:4},
+    {s:5,f:5,fin:1,root:true},{s:5,f:8,fin:4}
+  ];
+  neck('n3', {from:4, to:9, dots:box},
+    legFingers.replace('</div>',
+      '<span><i class="sw" style="background:#f3ead6"></i>тоника A</span></div>'));
+})();
+
+/* =========================================================
+   СТРЪМИНГ ПАТЕРН СЪС СТРЕЛКИ
+   data-p = 8 осмини: D = надолу, U = нагоре, - = пауза
+   ========================================================= */
+const ARROW_D = '<svg viewBox="0 0 22 26" xmlns="http://www.w3.org/2000/svg">'+
+  '<path d="M11 4 L11 19 M4 12.5 L11 20 L18 12.5" fill="none" stroke="#fff" '+
+  'stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+const ARROW_U = '<svg viewBox="0 0 22 26" xmlns="http://www.w3.org/2000/svg">'+
+  '<path d="M11 22 L11 7 M4 13.5 L11 6 L18 13.5" fill="none" stroke="#fff" '+
+  'stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+const COUNT = ['1','&','2','&','3','&','4','&'];
+
+document.querySelectorAll('.strum[data-p]').forEach(box=>{
+  const pat = box.dataset.p.split('');
+  const cells = pat.map((v,i)=>{
+    const up  = v === 'U';
+    const off = v === '-';
+    // при пауза показваме бледа стрелка в посоката, в която ръката така или иначе минава
+    const dirUp = off ? (i % 2 === 1) : up;
+    return '<div class="sq ' + (off?'off':'on') + '">' +
+             '<div class="pad">' + (dirUp ? ARROW_U : ARROW_D) + '</div>' +
+             '<div class="lbl">' + (off ? '' : (up ? 'U' : 'D')) + '</div>' +
+             '<div class="cnt">' + COUNT[i] + '</div>' +
+           '</div>';
+  }).join('');
+  box.innerHTML = '<div class="row">' + cells + '</div>' +
+    '<div class="cap">' + (box.dataset.cap || '') +
+    ' · <b>D</b> = удар надолу, <b>U</b> = нагоре, бледите са паузи — ръката минава, но не докосва струните</div>';
+});
+
+/* =========================================================
+   ТАЙМЕР + МЕХАНИЧЕН МЕТРОНОМ за всяко упражнение
+   ========================================================= */
+
+/* ---------- звук ---------- */
+let AC=null, BUS=null, NOISE=null;
+function audio(){
+  if(!AC){
+    // iOS 16.4+: без това Web Audio мълчи, ако страничният ключ е на безшумен режим
+    try{ if(navigator.audioSession) navigator.audioSession.type='playback'; }catch(e){}
+    AC = new (window.AudioContext||window.webkitAudioContext)();
+    BUS = AC.createGain(); BUS.gain.value = 0.9;
+    const comp = AC.createDynamicsCompressor();
+    comp.threshold.value=-10; comp.ratio.value=3; comp.attack.value=0.003; comp.release.value=0.2;
+    BUS.connect(comp); comp.connect(AC.destination);
+    const sr=AC.sampleRate, n=Math.floor(sr*0.04);
+    NOISE = AC.createBuffer(1,n,sr);
+    const d = NOISE.getChannelData(0);
+    for(let i=0;i<n;i++) d[i] = Math.random()*2-1;
+  }
+  if(AC.state==='suspended') AC.resume();
+  return AC;
+}
+
+/* Механичен метроном: не „бийп“, а удар на дърво.
+   1) много кратък шумов транзиент — самото чукване
+   2) три затихващи мода — резонансът на дървената кутия  */
+function woodTick(t, accent){
+  const s = AC.createBufferSource(); s.buffer = NOISE;
+  const bp = AC.createBiquadFilter(); bp.type='bandpass';
+  bp.frequency.value = accent?3500:2650; bp.Q.value=0.85;
+  const hp = AC.createBiquadFilter(); hp.type='highpass'; hp.frequency.value=650;
+  const g = AC.createGain();
+  g.gain.setValueAtTime(accent?0.60:0.36, t);
+  g.gain.exponentialRampToValueAtTime(0.0001, t+0.013);
+  s.connect(bp); bp.connect(hp); hp.connect(g); g.connect(BUS);
+  s.start(t); s.stop(t+0.05);
+
+  const f0 = accent ? 1385 : 995;
+  [[1,accent?0.26:0.17,0.055],[2.31,0.10,0.032],[3.74,0.05,0.020]].forEach(m=>{
+    const o=AC.createOscillator(), og=AC.createGain();
+    o.type='sine'; o.frequency.value=f0*m[0];
+    og.gain.setValueAtTime(0.0001,t);
+    og.gain.exponentialRampToValueAtTime(m[1],t+0.0012);
+    og.gain.exponentialRampToValueAtTime(0.0001,t+m[2]);
+    o.connect(og); og.connect(BUS); o.start(t); o.stop(t+m[2]+0.02);
+  });
+}
+
+/* мек звънец, когато времето изтече */
+function chime(t){
+  [880,1320,1760].forEach((f,i)=>{
+    const o=AC.createOscillator(), g=AC.createGain();
+    o.type='sine'; o.frequency.value=f;
+    const st=t+i*0.14;
+    g.gain.setValueAtTime(0.0001,st);
+    g.gain.exponentialRampToValueAtTime(0.22/(i+1),st+0.01);
+    g.gain.exponentialRampToValueAtTime(0.0001,st+0.9);
+    o.connect(g); g.connect(BUS); o.start(st); o.stop(st+1);
+  });
+}
+
+/* ---------- екранът не заспива, докато таймер или метроном върви ---------- */
+let wakeLock = null, activeTools = 0;
+async function keepAwake(delta){
+  activeTools += delta;
+  try{
+    if(activeTools > 0){ if(!wakeLock && navigator.wakeLock) wakeLock = await navigator.wakeLock.request('screen'); }
+    else if(wakeLock){ await wakeLock.release(); wakeLock = null; }
+  }catch(e){}
+}
+document.addEventListener('visibilitychange', ()=>{
+  if(document.visibilityState==='visible' && activeTools>0) keepAwake(0);
+});
+
+/* ---------- лента с инструменти под всяко заглавие ---------- */
+let running = null;                       // само един метроном свири в даден момент
+
+function buildTools(sec){
+  const mins = +sec.dataset.min, bpm0 = +sec.dataset.bpm;
+  const bar = document.createElement('div');
+  bar.className = 'tools';
+  bar.innerHTML =
+    '<div class="grp">' +
+      '<span class="clock">' + mins + ':00</span>' +
+      '<button class="tbtn t-go">▶ Старт</button>' +
+      '<button class="tbtn ico t-rs" title="нулирай">↺</button>' +
+    '</div>' +
+    '<div class="grp">' +
+      '<button class="tbtn m-go">Метроном</button>' +
+      '<input class="bpm" type="range" min="35" max="160" value="' + bpm0 + '">' +
+      '<span class="bpmv">' + bpm0 + ' BPM</span>' +
+      '<span class="dot"></span>' +
+    '</div>' +
+    '<div class="hint">Таймерът брои ' + mins + ' минути · метрономът акцентира първата от четири доли</div>';
+  sec.querySelector('h2').insertAdjacentElement('afterend', bar);
+
+  const clock = bar.querySelector('.clock'), go = bar.querySelector('.t-go'),
+        rs = bar.querySelector('.t-rs'), mgo = bar.querySelector('.m-go'),
+        sl = bar.querySelector('.bpm'), val = bar.querySelector('.bpmv'),
+        dot = bar.querySelector('.dot');
+
+  /* --- таймер --- */
+  const total = mins*60;
+  let left = total, tick = null, endAt = 0;
+  const show = ()=>{
+    const v = Math.max(0, Math.ceil(left));
+    clock.textContent = Math.floor(v/60) + ':' + String(v%60).padStart(2,'0');
+    clock.classList.toggle('done', v===0);
+  };
+  let tRunning = false;
+  const tstop = ()=>{
+    if(tick) clearInterval(tick); tick=null;
+    go.textContent='▶ Старт'; go.classList.remove('on');
+    if(tRunning){ tRunning=false; keepAwake(-1); }
+  };
+  go.onclick = ()=>{
+    if(tick){ left = (endAt-Date.now())/1000; tstop(); return; }
+    audio();
+    if(left<=0) left = total;
+    endAt = Date.now() + left*1000;
+    go.textContent='❚❚ Пауза'; go.classList.add('on');
+    tRunning = true; keepAwake(1);
+    tick = setInterval(()=>{
+      left = (endAt-Date.now())/1000;
+      if(left<=0){ left=0; tstop(); show(); chime(AC.currentTime+0.05); return; }
+      show();
+    }, 200);
+    show();
+  };
+  rs.onclick = ()=>{ tstop(); left = total; show(); };
+  show();
+
+  /* --- метроном --- */
+  let timer=null, next=0, beat=0;
+  const bpm = ()=>+sl.value;
+  const schedule = ()=>{
+    while(next < AC.currentTime + 0.15){
+      woodTick(next, beat%4===0);
+      const at = next;
+      setTimeout(()=>{ dot.classList.remove('beat'); void dot.offsetWidth; dot.classList.add('beat'); },
+                 Math.max(0,(at-AC.currentTime)*1000));
+      next += 60/bpm();
+      beat++;
+    }
+  };
+  let mRunning = false;
+  const mstop = ()=>{
+    if(timer) clearInterval(timer);
+    timer=null; mgo.textContent='Метроном'; mgo.classList.remove('on');
+    if(running===mstop) running=null;
+    if(mRunning){ mRunning=false; keepAwake(-1); }
+  };
+  mgo.onclick = ()=>{
+    if(timer){ mstop(); return; }
+    if(running) running();                 // спираме метронома на друга секция
+    audio();
+    beat=0; next = AC.currentTime + 0.1;
+    mgo.textContent='Спри'; mgo.classList.add('on');
+    timer = setInterval(schedule, 25);
+    running = mstop;
+    mRunning = true; keepAwake(1);
+  };
+  sl.oninput = ()=>{ val.textContent = bpm() + ' BPM'; };
+}
+
+document.querySelectorAll('section[data-min]').forEach(buildTools);
+
+/* при цъкане на бутон от менюто — подчертаваме къде сме пристигнали */
+document.querySelectorAll('.nav a').forEach(a=>{
+  a.addEventListener('click', ()=>{
+    const sec = document.querySelector(a.getAttribute('href')).closest('section');
+    if(!sec) return;
+    sec.classList.remove('arrive'); void sec.offsetWidth; sec.classList.add('arrive');
+  });
+});
+
+/* 4 · първата фраза — числата са редът на свирене */
+(function(){
+  // B8 → B5 → G7 → G5 → D7 : слизаш по два тона на струна и кацаш на тониката A
+  const seq=[{s:4,f:8},{s:4,f:5},{s:3,f:7},{s:3,f:5},{s:2,f:7}];
+  const fin=f=>f===5?1:(f===7?3:4);
+  neck('n4', {from:4, to:9,
+    dots:seq.map((p,i)=>({s:p.s, f:p.f, fin:fin(p.f), lbl:i+1, root:i===seq.length-1}))},
+    '<div class="legend"><span>числото = ред на свирене</span>' +
+    '<span><i class="sw" style="background:#f3ead6"></i>тониката A — тук кацаш</span></div>');
+})();
+
+// офлайн режим (работи само по https, т.е. на GitHub Pages — не при отваряне от диска)
+if('serviceWorker' in navigator)
+  window.addEventListener('load', ()=> navigator.serviceWorker.register('sw.js').catch(()=>{}));
+</script>
+</body>
+</html>
